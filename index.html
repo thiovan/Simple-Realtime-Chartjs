@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<head>
+	<title>area > boundaries | Chart.js sample</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
+</head>
+<body>
+	<div class="content">
+		<canvas id="myChart"></canvas>
+	</div>
+
+	<script>
+		//Global variable declaration
+		var ctx = document.getElementById("myChart");
+		var myChart = "";
+		var sumbuX = [];
+		var sumbuY = [];
+		var count = 0;
+
+		//Initializing chart
+		$.ajax({
+			type: "GET",
+			url: "data.php",
+			success: function(data){
+				var data = JSON.parse(data);
+
+				$.each(data.x, function(key, value) {
+					sumbuX.push(value);
+				});
+				$.each(data.y, function(key, value) {
+					sumbuY.push(value);
+				});
+				count = data.count;
+
+				createChart();
+			}
+		});
+
+		//Function to create chartjs
+		function createChart(){
+			myChart = new Chart(ctx, {
+				type: 'line',
+				data: {
+					labels: sumbuX,
+					datasets: [{
+						label: 'MyLabel',
+						data: sumbuY,
+						backgroundColor: 'rgba(255, 99, 132, 0.2)',
+						borderColor: 'rgba(255, 99, 132, 1)',
+						fill: true
+					}]
+				},
+				options: {
+					elements: {
+						line: {
+							tension: 0.000001
+						}
+					},
+					scales: {
+						yAxes: [{
+							ticks: {
+								beginAtZero:true
+							}
+						}]
+					}
+				}
+			});
+
+			sumbuX = [];
+			sumbuY = [];
+		}
+
+		//Function to check if new data is added
+		function checkNewData(){
+			$.ajax({
+				type: "GET",
+				url: "data.php",
+				success: function(data){
+					var data = JSON.parse(data);
+
+					if (data.count != count) {
+						$.each(data.x, function(key, value) {
+							sumbuX.push(value);
+						});
+						$.each(data.y, function(key, value) {
+							sumbuY.push(value);
+						});
+						count = data.count;
+
+						myChart.destroy();
+						createChart();
+					}
+
+					
+				}
+			});
+		}
+
+		//Call function checkNewData every 1 second
+		setInterval(function(){
+			checkNewData();
+		}, 1000);
+		
+	</script>
+</body>
+</html>
